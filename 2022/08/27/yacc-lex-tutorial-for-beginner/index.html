@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha256-xejo6yLi6vGtAjcMIsY8BHdKsLg7QynVlFMzdQgUuy8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.12.3","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="TL; DR 最近学习 TinySQL，TinySQL 的 Project2 与和 Yacc 和 Lex 相关，所以总结了一下相关的知识。这篇博客记录了如何单独使用 Lex 以及如何使用 Lex 和 Yacc 构造一个简单的计算器。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Tutorial] Lex&amp;Yacc 简明教程">
+<meta property="og:url" content="http://example.com/2022/08/27/yacc-lex-tutorial-for-beginner/index.html">
+<meta property="og:site_name" content="Tan Shun&#39;s Blog">
+<meta property="og:description" content="TL; DR 最近学习 TinySQL，TinySQL 的 Project2 与和 Yacc 和 Lex 相关，所以总结了一下相关的知识。这篇博客记录了如何单独使用 Lex 以及如何使用 Lex 和 Yacc 构造一个简单的计算器。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-08-27T03:47:48.000Z">
+<meta property="article:modified_time" content="2022-10-25T13:48:47.983Z">
+<meta property="article:author" content="Tan Shun">
+<meta property="article:tag" content="yacc">
+<meta property="article:tag" content="lex">
+<meta property="article:tag" content="tutorial">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2022/08/27/yacc-lex-tutorial-for-beginner/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/08/27/yacc-lex-tutorial-for-beginner/","path":"2022/08/27/yacc-lex-tutorial-for-beginner/","title":"[Tutorial] Lex&Yacc 简明教程"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>[Tutorial] Lex&Yacc 简明教程 | Tan Shun's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tan Shun's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lex"><span class="nav-number">1.</span> <span class="nav-text">Lex</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E6%AF%8F%E4%B8%80%E4%B8%AA-Token-%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.1.</span> <span class="nav-text">定义每一个 Token 的类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%86%99-lex-%E6%96%87%E4%BB%B6"><span class="nav-number">1.2.</span> <span class="nav-text">编写 lex 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-lex"><span class="nav-number">1.3.</span> <span class="nav-text">使用 lex</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-lex-yy-c"><span class="nav-number">1.4.</span> <span class="nav-text">使用 lex.yy.c</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E7%BB%93%E6%9E%9C"><span class="nav-number">1.5.</span> <span class="nav-text">最后结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Yacc"><span class="nav-number">2.</span> <span class="nav-text">Yacc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Yacc-%E6%96%87%E4%BB%B6%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-number">2.1.</span> <span class="nav-text">Yacc 文件的基本结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Definitions"><span class="nav-number">2.2.</span> <span class="nav-text">Definitions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Rules"><span class="nav-number">2.3.</span> <span class="nav-text">Rules</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Auxiliary-routines"><span class="nav-number">2.4.</span> <span class="nav-text">Auxiliary routines</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-number">2.5.</span> <span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Tan Shun</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/08/27/yacc-lex-tutorial-for-beginner/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Tan Shun">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="[Tutorial] Lex&Yacc 简明教程 | Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [Tutorial] Lex&Yacc 简明教程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-08-27 11:47:48" itemprop="dateCreated datePublished" datetime="2022-08-27T11:47:48+08:00">2022-08-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2022-10-25 21:48:47" itemprop="dateModified" datetime="2022-10-25T21:48:47+08:00">2022-10-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><strong>TL; DR</strong></p>
+<p>最近学习 TinySQL，TinySQL 的 Project2 与和 Yacc 和 Lex 相关，所以总结了一下相关的知识。这篇博客记录了如何单独使用 Lex 以及如何使用 Lex 和 Yacc 构造一个简单的计算器。</p>
+<span id="more"></span>
+
+
+
+<h2 id="Lex"><a href="#Lex" class="headerlink" title="Lex"></a>Lex</h2><p>Lex 是一个「词法分析器」。很多教程都没有教如何单独使用 Lex 做词法分析。但是，这对理解 Yacc 有着至关重要的作用。这部分的内容来自：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=54bo1qaHAfk">https://www.youtube.com/watch?v=54bo1qaHAfk</a> ，大家有兴趣可以看看视频。</p>
+<p>词法分析器：就是把文本转换成一个可以识别每一个 Token 的 Token 数组。</p>
+<p>举个具体的例子，假设有这样的文本：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">db_type:</span> <span class="string">mysql</span></span><br><span class="line"><span class="attr">db_name:</span> <span class="string">testdata</span></span><br><span class="line"><span class="attr">db_table_prefix:</span> <span class="string">test_</span></span><br><span class="line"><span class="attr">db_port:</span> <span class="number">1099</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>通过「词法分析」可以将上述文本装换成下面的 Token 数组：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[TYPE, COLON, SPACE, IDENTIFIER, EOL, NAME, COLON, SPACE, IDENTIFIER, EOL, TABLE_PREFIX, COLON, SPACE, IDENTIFIER, EOL, PORT COLON, SPACE, INTEGER]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这样看可能比较抽象，我具体抽出一行来看看效果：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">db_type:</span>  <span class="string">mysql</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>被转换成了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[TYPE, COLON, SPACE, IDENTIFIER, EOL]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>TYPE 表示 <code>db_type</code> 被识别成了 TYPE 类型的 Token。同理，COLON 表示 <code>:</code> 被识别成了 COLON 类型的 Token；SPACE 表示  被识别成了 SPACE 类型的 Token；<code>mysql</code> 被识别成 IDENTIFIER 类型的 Token。<code>\n</code> 被识别成 EOL 类型的 Token。</p>
+<p>每一个转换后的 Token 类型都是事先定义好的。接下来展示如何使用 Lex 完成这一过程，所有代码在这个仓库中：<a target="_blank" rel="noopener" href="https://github.com/jengelsma/lex-tutorial">https://github.com/jengelsma/lex-tutorial</a> 。</p>
+<h3 id="定义每一个-Token-的类型"><a href="#定义每一个-Token-的类型" class="headerlink" title="定义每一个 Token 的类型"></a>定义每一个 Token 的类型</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// myscanner.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TYPE 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NAME 2</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TABLE_PREFIX 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PORT 4</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> COLON 5</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> IDENTIFIER 6</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INTEGER 7</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="编写-lex-文件"><a href="#编写-lex-文件" class="headerlink" title="编写 lex 文件"></a>编写 lex 文件</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// myscanner.l</span></span><br><span class="line">%&#123;</span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;myscanner.h&quot;</span></span></span><br><span class="line">%&#125;</span><br><span class="line">%option nounput yylineno</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line">:					<span class="keyword">return</span> COLON;</span><br><span class="line"><span class="string">&quot;db_type&quot;</span>			<span class="keyword">return</span> TYPE;</span><br><span class="line"><span class="string">&quot;db_name&quot;</span>			<span class="keyword">return</span> NAME;</span><br><span class="line"><span class="string">&quot;db_table_prefix&quot;</span>	<span class="keyword">return</span> TABLE_PREFIX;</span><br><span class="line"><span class="string">&quot;db_port&quot;</span>			<span class="keyword">return</span> PORT;</span><br><span class="line"></span><br><span class="line">[a-zA-Z][_a-zA-Z0<span class="number">-9</span>]*	<span class="keyword">return</span> IDENTIFIER;</span><br><span class="line">[<span class="number">1</span><span class="number">-9</span>][<span class="number">0</span><span class="number">-9</span>]*				<span class="keyword">return</span> INTEGER;</span><br><span class="line">[ \t\n]					;</span><br><span class="line">.					<span class="built_in">printf</span>(<span class="string">&quot;unexpected character\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">yywrap</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>现在来解释 myscanner.l 这个文件在做什么。Lex 文件通常由下面的结构构成：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">DECLARATIONS</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">RULES</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">AUXILIARY FUNCTIONS</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><code>DECLARATIONS</code>：一些声明，比如用 %{}% 包裹的头文件的定义，里面包含了定义好的 Token 的类型。%option nounput yylineno 表明要使用的变量，这个变量的使用会在后面展示。</p>
+<p><code>RULES</code>：定义一些正则表达式，后面跟着的就是用 C 编写的如果 Lex 成功识别了这个正则表达式需要做些什么。比如当识别文本中 <code>db_type</code> 这个文本，就会 Return TYPE（TYPE 在 myscanner.h 定义好的类型）。这个「Return Type」的具体什么意思到后面会展示。</p>
+<p><code>UXILIARY FUNCTIONS</code>：一些辅助函数。就是一些 lex 在做词法分析的时候可能需要使用的函数。lex 在扫描完一个 file 以后不知道是否要继续扫描就会调用 yywrap 这个函数，如果返回 0 就继续扫描下一个。返回非 0 就停止扫描。关于 yywrap 可以看 <a target="_blank" rel="noopener" href="https://silcnitc.github.io/lex.html">https://silcnitc.github.io/lex.html</a> ，里面有介绍，返回 0 的时候如何告诉 lex 下一个扫描哪个 file。</p>
+<p><strong>在 RULES 还要注意一点的是优先级的问题，写在前面的 Rule 优先级越高。不然 IDENTIFIER 的正则表达式就能匹配 TYPE 了，发生冲突了。</strong></p>
+<h3 id="使用-lex"><a href="#使用-lex" class="headerlink" title="使用 lex"></a>使用 lex</h3><p>使用下述命令把 myscanner.l 变成一个 c 文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">lex myscanner.l</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看到多了一个 <code>lex.yy.c</code> 的文件，这个文件就是 lex 这个工具生成的用于词法分析的 C 代码。</p>
+<h3 id="使用-lex-yy-c"><a href="#使用-lex-yy-c" class="headerlink" title="使用 lex.yy.c"></a>使用 lex.yy.c</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// myscanner.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;myscanner.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span> <span class="title function_">yylex</span><span class="params">()</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span> yylineno;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span>* yytext;</span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *names[] = &#123;<span class="literal">NULL</span>, <span class="string">&quot;db_type&quot;</span>, <span class="string">&quot;db_name&quot;</span>, <span class="string">&quot;db_table_prefix&quot;</span>, <span class="string">&quot;db_port&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span> </span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> ntoken, vtoken;</span><br><span class="line"></span><br><span class="line">	ntoken = yylex();</span><br><span class="line">	<span class="keyword">while</span>(ntoken) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>, ntoken);</span><br><span class="line">		<span class="keyword">if</span>(yylex() != COLON) &#123;</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;Syntax error in line %d, Expected a &#x27;:&#x27; but found %s\n&quot;</span>, yylineno, yytext);</span><br><span class="line">			<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		vtoken = yylex();</span><br><span class="line">		<span class="keyword">switch</span> (ntoken) &#123;</span><br><span class="line">		<span class="keyword">case</span> TYPE:</span><br><span class="line">		<span class="keyword">case</span> NAME:</span><br><span class="line">		<span class="keyword">case</span> TABLE_PREFIX:</span><br><span class="line">			<span class="keyword">if</span>(vtoken != IDENTIFIER) &#123;</span><br><span class="line">				<span class="built_in">printf</span>(<span class="string">&quot;Syntax error in line %d, Expected an identifier but found %s\n&quot;</span>, yylineno, yytext);</span><br><span class="line">				<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;%s is set to %s\n&quot;</span>, names[ntoken], yytext);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> PORT:</span><br><span class="line">			<span class="keyword">if</span>(vtoken != INTEGER) &#123;</span><br><span class="line">				<span class="built_in">printf</span>(<span class="string">&quot;Syntax error in line %d, Expected an integer but found %s\n&quot;</span>, yylineno, yytext);</span><br><span class="line">				<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;%s is set to %s\n&quot;</span>, names[ntoken], yytext);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;Syntax error in line %d\n&quot;</span>,yylineno);</span><br><span class="line">		&#125;</span><br><span class="line">		ntoken = yylex();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>理解这段代码首先需要理解三个 extern 的东西。这三个东西都是在 lex.yy.c 中定义的函数或者变量。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">int</span> <span class="title function_">yylex</span><span class="params">()</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span> yylineno;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span>* yytext;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>yylex</li>
+</ul>
+<p>这个函数每次调用都会返回一个 Token Type，也就是在 myscanner.l 中写的 Return XXX。当然它的返回不是一成不变的，是按照识别的顺序一个 Token Type 一个 Token Type 返回的。举个具体例子。假设词法分析最终的结果是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[TYPE, COLON, SPACE, IDENTIFIER, EOL, NAME, COLON, SPACE, IDENTIFIER, EOL, TABLE_PREFIX, COLON, SPACE, IDENTIFIER, EOL, PORT COLON, SPACE, INTEGER]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>那么第一次调用 yylex，返回的就是 TYPE。</p>
+<p>第二次调用 yylex，返回的就是 COLON。</p>
+<p>…</p>
+<p>以此类推。</p>
+<ul>
+<li>yylineno</li>
+</ul>
+<p>yylex() 只是返回一个 Token Type。但是这个 Token Type 在哪一行就是通过这个 yylineno 全局变量存储的。</p>
+<ul>
+<li>yytext</li>
+</ul>
+<p>yylex() 只是返回一个 Token Type。但是这个 Token Type 的字面量是什么是通过 yytext 这个全局变量存储的。</p>
+<p>如果实在不理解，可以具体在程序中调试调试。</p>
+<h3 id="最后结果"><a href="#最后结果" class="headerlink" title="最后结果"></a>最后结果</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">gcc lex.yy.c myscanner.c -o myscanner</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">./myscanner &lt; config.in</span> </span><br><span class="line">1</span><br><span class="line">db_type is set to mysql</span><br><span class="line">2</span><br><span class="line">db_name is set to testdata</span><br><span class="line">3</span><br><span class="line">db_table_prefix is set to test_</span><br><span class="line">4</span><br><span class="line">Syntax error in line 4, Expected an integer but found a1099</span><br></pre></td></tr></table></figure>
+
+
+
+<p>能够使用 Lex 以后，本文继续介绍如何使用 Yacc。</p>
+<h2 id="Yacc"><a href="#Yacc" class="headerlink" title="Yacc"></a>Yacc</h2><p>Yacc 是个「语法分析器」，通过 lex 得到每一个 Token，去找到匹配的语法。这一部分的内容也来自：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=__-wUHG2rfM">https://www.youtube.com/watch?v=__-wUHG2rfM</a> ，所有的代码来自：<a target="_blank" rel="noopener" href="https://github.com/jengelsma/yacc-tutorial">https://github.com/jengelsma/yacc-tutorial</a> 。</p>
+<p>代码仓库中定义的 yacc 文件：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">%&#123;</span><br><span class="line"><span class="type">void</span> <span class="title function_">yyerror</span> <span class="params">(<span class="type">char</span> *s)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">yylex</span><span class="params">()</span>;</span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span>     <span class="comment">/* C declarations used in actions */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> symbols[<span class="number">52</span>];</span><br><span class="line"><span class="type">int</span> <span class="title function_">symbolVal</span><span class="params">(<span class="type">char</span> symbol)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">updateSymbolVal</span><span class="params">(<span class="type">char</span> symbol, <span class="type">int</span> val)</span>;</span><br><span class="line">%&#125;</span><br><span class="line"></span><br><span class="line">%<span class="class"><span class="keyword">union</span> &#123;</span><span class="type">int</span> num; <span class="type">char</span> id;&#125;         <span class="comment">/* Yacc definitions */</span></span><br><span class="line">%start line</span><br><span class="line">%token print</span><br><span class="line">%token exit_command</span><br><span class="line">%token &lt;num&gt; number</span><br><span class="line">%token &lt;id&gt; identifier</span><br><span class="line">%type &lt;num&gt; line <span class="built_in">exp</span> term </span><br><span class="line">%type &lt;id&gt; assignment</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line"><span class="comment">/* descriptions of expected inputs     corresponding actions (in C) */</span></span><br><span class="line"></span><br><span class="line">line    : assignment <span class="string">&#x27;;&#x27;</span>		&#123;;&#125;</span><br><span class="line">		| exit_command <span class="string">&#x27;;&#x27;</span>		&#123;<span class="built_in">exit</span>(EXIT_SUCCESS);&#125;</span><br><span class="line">		| print <span class="built_in">exp</span> <span class="string">&#x27;;&#x27;</span>			&#123;<span class="built_in">printf</span>(<span class="string">&quot;Printing %d\n&quot;</span>, $<span class="number">2</span>);&#125;</span><br><span class="line">		| line assignment <span class="string">&#x27;;&#x27;</span>	&#123;;&#125;</span><br><span class="line">		| line print <span class="built_in">exp</span> <span class="string">&#x27;;&#x27;</span>	&#123;<span class="built_in">printf</span>(<span class="string">&quot;Printing %d\n&quot;</span>, $<span class="number">3</span>);&#125;</span><br><span class="line">		| line exit_command <span class="string">&#x27;;&#x27;</span>	&#123;<span class="built_in">exit</span>(EXIT_SUCCESS);&#125;</span><br><span class="line">        ;</span><br><span class="line"></span><br><span class="line">assignment : identifier <span class="string">&#x27;=&#x27;</span> <span class="built_in">exp</span>  &#123; updateSymbolVal($<span class="number">1</span>,$<span class="number">3</span>); &#125;</span><br><span class="line">			;</span><br><span class="line"><span class="built_in">exp</span>    	: term                  &#123;$$ = $<span class="number">1</span>;&#125;</span><br><span class="line">       	| <span class="built_in">exp</span> <span class="string">&#x27;+&#x27;</span> term          &#123;$$ = $<span class="number">1</span> + $<span class="number">3</span>;&#125;</span><br><span class="line">       	| <span class="built_in">exp</span> <span class="string">&#x27;-&#x27;</span> term          &#123;$$ = $<span class="number">1</span> - $<span class="number">3</span>;&#125;</span><br><span class="line">       	;</span><br><span class="line">term   	: number                &#123;$$ = $<span class="number">1</span>;&#125;</span><br><span class="line">		| identifier			&#123;$$ = symbolVal($<span class="number">1</span>);&#125; </span><br><span class="line">        ;</span><br><span class="line"></span><br><span class="line">%%                     <span class="comment">/* C code */</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">computeSymbolIndex</span><span class="params">(<span class="type">char</span> token)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">int</span> idx = <span class="number">-1</span>;</span><br><span class="line">	<span class="keyword">if</span>(<span class="built_in">islower</span>(token)) &#123;</span><br><span class="line">		idx = token - <span class="string">&#x27;a&#x27;</span> + <span class="number">26</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span>(<span class="built_in">isupper</span>(token)) &#123;</span><br><span class="line">		idx = token - <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> idx;</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="comment">/* returns the value of a given symbol */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">symbolVal</span><span class="params">(<span class="type">char</span> symbol)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">int</span> bucket = computeSymbolIndex(symbol);</span><br><span class="line">	<span class="keyword">return</span> symbols[bucket];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* updates the value of a given symbol */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">updateSymbolVal</span><span class="params">(<span class="type">char</span> symbol, <span class="type">int</span> val)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">int</span> bucket = computeSymbolIndex(symbol);</span><br><span class="line">	symbols[bucket] = val;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span> <span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">	<span class="comment">/* init symbol table */</span></span><br><span class="line">	<span class="type">int</span> i;</span><br><span class="line">	<span class="keyword">for</span>(i=<span class="number">0</span>; i&lt;<span class="number">52</span>; i++) &#123;</span><br><span class="line">		symbols[i] = <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> yyparse ( );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">yyerror</span> <span class="params">(<span class="type">char</span> *s)</span> &#123;<span class="built_in">fprintf</span> (<span class="built_in">stderr</span>, <span class="string">&quot;%s\n&quot;</span>, s);&#125; </span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>定义的 lex 文件如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">%&#123;</span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;y.tab.h&quot;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">yyerror</span> <span class="params">(<span class="type">char</span> *s)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">yylex</span><span class="params">()</span>;</span><br><span class="line">%&#125;</span><br><span class="line">%%</span><br><span class="line"><span class="string">&quot;print&quot;</span>				   &#123;<span class="keyword">return</span> print;&#125;</span><br><span class="line"><span class="string">&quot;exit&quot;</span>				   &#123;<span class="keyword">return</span> exit_command;&#125;</span><br><span class="line">[a-zA-Z]			   &#123;yylval.id = yytext[<span class="number">0</span>]; <span class="keyword">return</span> identifier;&#125;</span><br><span class="line">  [<span class="number">0</span><span class="number">-9</span>]+                 &#123;yylval.num = atoi(yytext); <span class="keyword">return</span> number;&#125;</span><br><span class="line">[ \t\n]                ;</span><br><span class="line">[-+=;]           	   &#123;<span class="keyword">return</span> yytext[<span class="number">0</span>];&#125;</span><br><span class="line">.                      &#123;ECHO; yyerror (<span class="string">&quot;unexpected character&quot;</span>);&#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"><span class="type">int</span> <span class="title function_">yywrap</span> <span class="params">(<span class="type">void</span>)</span> &#123;<span class="keyword">return</span> <span class="number">1</span>;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>这个规则主要的功能如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">➜  yacc-tutorial git:(master) ✗ ./calc</span><br><span class="line">print 10+10;</span><br><span class="line">Printing 20</span><br><span class="line">a=10;</span><br><span class="line">b=10;</span><br><span class="line">print a+b;</span><br><span class="line">Printing 20</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>本章主要说明 clac.y clac.l 这两个文件的每一行代码的含义。</p>
+<h3 id="Yacc-文件的基本结构"><a href="#Yacc-文件的基本结构" class="headerlink" title="Yacc 文件的基本结构"></a>Yacc 文件的基本结构</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* definitions */</span></span><br><span class="line"> ....</span><br><span class="line"></span><br><span class="line">%% </span><br><span class="line"><span class="comment">/* rules */</span> </span><br><span class="line">....</span><br><span class="line">%% </span><br><span class="line"></span><br><span class="line"><span class="comment">/* auxiliary routines */</span></span><br><span class="line">.... </span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>基本与 Lex 一致。</p>
+<h3 id="Definitions"><a href="#Definitions" class="headerlink" title="Definitions"></a>Definitions</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">%&#123;</span><br><span class="line"><span class="type">void</span> <span class="title function_">yyerror</span> <span class="params">(<span class="type">char</span> *s)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">yylex</span><span class="params">()</span>;</span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span>     <span class="comment">/* C declarations used in actions */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> symbols[<span class="number">52</span>];</span><br><span class="line"><span class="type">int</span> <span class="title function_">symbolVal</span><span class="params">(<span class="type">char</span> symbol)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">updateSymbolVal</span><span class="params">(<span class="type">char</span> symbol, <span class="type">int</span> val)</span>;</span><br><span class="line">%&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这一部分写 yacc 生成文件的头部。symbols 存储 52 个变量（[a, z] + [A, Z]）的值，只能是 int。symbolVal 查询变量的值。updateSymbolVal 更新变量的值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">%<span class="class"><span class="keyword">union</span> &#123;</span><span class="type">int</span> num; <span class="type">char</span> id;&#125;         <span class="comment">/* Yacc definitions */</span></span><br><span class="line">%start line</span><br><span class="line">%token print</span><br><span class="line">%token exit_command</span><br><span class="line">%token &lt;num&gt; number</span><br><span class="line">%token &lt;id&gt; identifier</span><br><span class="line">%type &lt;num&gt; line <span class="built_in">exp</span> term </span><br><span class="line">%type &lt;id&gt; assignment</span><br></pre></td></tr></table></figure>
+
+
+
+<p>要看懂这一部分在干什么，需要理解：<strong>一个 Token 除了它的字面量以外还有它的语义值</strong>。</p>
+<p>比如，1000 按照 clac.l 定义它是一个 number，它的字面量是 ‘1000’，是一个 string 可以由全局变量 yytext 获得。同理，它的语义值 1000，需要存储在全局变量 yyval 中。由于它是一个全局变量，每一个 Token 的语义值的类型可能是不一样的。所以需要用 union 这个关键字，指定这个 Token 对应的语义值如何存储，语义值的类型是什么。与 C 的 Union 的关键字含义一致，共用 yyval 的内存。比如，在 clac.l 中当匹配 [0-9]+ 的时候这个 Token 的语义值就被放入了 yyval.num 中。</p>
+<p>接着：%start 规定了从哪个语法开始解析，%token 定义了新的 token，%type 定义了非终结符的类型，可以用来做非终结符的类型检查。具体来说：</p>
+<ol>
+<li><p><code>%token &lt;num&gt; number</code> 在定义了新的 token number 的同时还定义了 这个 number 的语义值存储在 yyval 的 num 中。</p>
+</li>
+<li><p><code>%token &lt;id&gt; identifier</code> 在定义了新的 token identifier 的同时还定义了 这个 identifier 的语义值存储在 yyval 的 id 中。</p>
+</li>
+<li><p><code>%type &lt;num&gt; line exp term</code> 定义了非终结符的 type 为 num，这个 type 来自 %union，可以用来做非终结符的类型检查。</p>
+</li>
+<li><p><code>%type &lt;num&gt; assignment</code> 定义了非终结符的 type 为 id，这个 type 来自 %union，可以用来做非终结符的类型检查。</p>
+</li>
+</ol>
+<h3 id="Rules"><a href="#Rules" class="headerlink" title="Rules"></a>Rules</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">line    : assignment <span class="string">&#x27;;&#x27;</span>		&#123;;&#125;</span><br><span class="line">		| exit_command <span class="string">&#x27;;&#x27;</span>		&#123;<span class="built_in">exit</span>(EXIT_SUCCESS);&#125;</span><br><span class="line">		| print <span class="built_in">exp</span> <span class="string">&#x27;;&#x27;</span>			&#123;<span class="built_in">printf</span>(<span class="string">&quot;Printing %d\n&quot;</span>, $<span class="number">2</span>);&#125;</span><br><span class="line">		| line assignment <span class="string">&#x27;;&#x27;</span>	&#123;;&#125;</span><br><span class="line">		| line print <span class="built_in">exp</span> <span class="string">&#x27;;&#x27;</span>	&#123;<span class="built_in">printf</span>(<span class="string">&quot;Printing %d\n&quot;</span>, $<span class="number">3</span>);&#125;</span><br><span class="line">		| line exit_command <span class="string">&#x27;;&#x27;</span>	&#123;<span class="built_in">exit</span>(EXIT_SUCCESS);&#125;</span><br><span class="line">        ;</span><br><span class="line"></span><br><span class="line">assignment : identifier <span class="string">&#x27;=&#x27;</span> <span class="built_in">exp</span>  &#123; updateSymbolVal($<span class="number">1</span>,$<span class="number">3</span>); &#125;</span><br><span class="line">			;</span><br><span class="line"><span class="built_in">exp</span>    	: term                  &#123;$$ = $<span class="number">1</span>;&#125;</span><br><span class="line">       	| <span class="built_in">exp</span> <span class="string">&#x27;+&#x27;</span> term          &#123;$$ = $<span class="number">1</span> + $<span class="number">3</span>;&#125;</span><br><span class="line">       	| <span class="built_in">exp</span> <span class="string">&#x27;-&#x27;</span> term          &#123;$$ = $<span class="number">1</span> - $<span class="number">3</span>;&#125;</span><br><span class="line">       	;</span><br><span class="line">term   	: number                &#123;$$ = $<span class="number">1</span>;&#125;</span><br><span class="line">		| identifier			&#123;$$ = symbolVal($<span class="number">1</span>);&#125; </span><br><span class="line">        ;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>这一部分定义了语法。主要有以下需要注意的地方：</p>
+<ol>
+<li><code>&#123;&#125;</code> 定义了发现了这个语法以后需要做什么。</li>
+<li><code>line assignment</code> 这样的递归写法可以当发现了一个 <code>assignment;</code> 或者<code>exit_command;</code> 或者 <code>print exp;</code>  以后继续读取 token。</li>
+<li><code>$$ = $1 + $3;</code> 表示左边的语义值等于右边第一个参数的语义值加上第三个参数的语义值。</li>
+<li>一个语法内部的优先级从上到下依次提高。</li>
+</ol>
+<h3 id="Auxiliary-routines"><a href="#Auxiliary-routines" class="headerlink" title="Auxiliary routines"></a>Auxiliary routines</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">computeSymbolIndex</span><span class="params">(<span class="type">char</span> token)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">int</span> idx = <span class="number">-1</span>;</span><br><span class="line">	<span class="keyword">if</span>(<span class="built_in">islower</span>(token)) &#123;</span><br><span class="line">		idx = token - <span class="string">&#x27;a&#x27;</span> + <span class="number">26</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span>(<span class="built_in">isupper</span>(token)) &#123;</span><br><span class="line">		idx = token - <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> idx;</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="comment">/* returns the value of a given symbol */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">symbolVal</span><span class="params">(<span class="type">char</span> symbol)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">int</span> bucket = computeSymbolIndex(symbol);</span><br><span class="line">	<span class="keyword">return</span> symbols[bucket];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* updates the value of a given symbol */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">updateSymbolVal</span><span class="params">(<span class="type">char</span> symbol, <span class="type">int</span> val)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">int</span> bucket = computeSymbolIndex(symbol);</span><br><span class="line">	symbols[bucket] = val;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span> <span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">	<span class="comment">/* init symbol table */</span></span><br><span class="line">	<span class="type">int</span> i;</span><br><span class="line">	<span class="keyword">for</span>(i=<span class="number">0</span>; i&lt;<span class="number">52</span>; i++) &#123;</span><br><span class="line">		symbols[i] = <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> yyparse ( );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">yyerror</span> <span class="params">(<span class="type">char</span> *s)</span> &#123;<span class="built_in">fprintf</span> (<span class="built_in">stderr</span>, <span class="string">&quot;%s\n&quot;</span>, s);&#125; </span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>这里就定义了一些函数，通过 yyparse() 开始执行。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>下载仓库，直接使用 <code>make calc</code> 就能得到一个解析加减的计算器。你可以看看 Makefile 中是怎么生成 yacc 的 c 文件的。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://silcnitc.github.io/lex.html">https://silcnitc.github.io/lex.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.geeksforgeeks.org/introduction-to-yacc/">https://www.geeksforgeeks.org/introduction-to-yacc/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=54bo1qaHAfk">https://www.youtube.com/watch?v=54bo1qaHAfk</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=__-wUHG2rfM">https://www.youtube.com/watch?v=__-wUHG2rfM</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/yacc/" rel="tag"># yacc</a>
+              <a href="/tags/lex/" rel="tag"># lex</a>
+              <a href="/tags/tutorial/" rel="tag"># tutorial</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/08/22/life-restart-to-write-a-blog/" rel="prev" title="[life]重新开始写博客">
+                  <i class="fa fa-chevron-left"></i> [life]重新开始写博客
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/08/27/explore-extern-keyword-in-c/" rel="next" title="[C] 探究 C 语言中的 extern 关键字">
+                  [C] 探究 C 语言中的 extern 关键字 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tan Shun</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
