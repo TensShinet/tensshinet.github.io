@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha256-xejo6yLi6vGtAjcMIsY8BHdKsLg7QynVlFMzdQgUuy8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.12.3","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="TL; DR 这是一篇关于 Raft 知识点总结的博客。总结的不全，尤其是 Snapshot 那块。如果有理解错误或者笔误的地方请联系我！ 主要参考：  论文：https:&#x2F;&#x2F;github.com&#x2F;ongardie&#x2F;dissertation&#x2F;blob&#x2F;master&#x2F;stanford.pdf ETCD 的文档：https:&#x2F;&#x2F;github.com&#x2F;etcd-io&#x2F;etcd&#x2F;blob&#x2F;main&#x2F;raf">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Raft] Summary: The Knowledge Points In Raft">
+<meta property="og:url" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/index.html">
+<meta property="og:site_name" content="Tan Shun&#39;s Blog">
+<meta property="og:description" content="TL; DR 这是一篇关于 Raft 知识点总结的博客。总结的不全，尤其是 Snapshot 那块。如果有理解错误或者笔误的地方请联系我！ 主要参考：  论文：https:&#x2F;&#x2F;github.com&#x2F;ongardie&#x2F;dissertation&#x2F;blob&#x2F;master&#x2F;stanford.pdf ETCD 的文档：https:&#x2F;&#x2F;github.com&#x2F;etcd-io&#x2F;etcd&#x2F;blob&#x2F;main&#x2F;raf">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/1.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221205134746973.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221205135407856.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221205161635925.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221207213413360.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221208235257735.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/Sequential-Consistency.svg">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221211171015112.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221211205646109.png">
+<meta property="og:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221212000204351.png">
+<meta property="article:published_time" content="2022-11-23T16:42:17.000Z">
+<meta property="article:modified_time" content="2022-12-13T08:39:08.654Z">
+<meta property="article:author" content="Tan Shun">
+<meta property="article:tag" content="raft">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/1.png">
+
+
+<link rel="canonical" href="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/","path":"2022/11/24/Summary-The-Knowledge-Points-In-Raft/","title":"[Raft] Summary: The Knowledge Points In Raft"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>[Raft] Summary: The Knowledge Points In Raft | Tan Shun's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tan Shun's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Knowledge-Points"><span class="nav-number">1.</span> <span class="nav-text">Knowledge Points</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E7%8A%B6%E6%80%81%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%BA%E4%BB%80%E4%B9%88"><span class="nav-number">1.1.</span> <span class="nav-text">[C3] 持久化的状态有哪些，以及为什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E6%8C%81%E4%B9%85%E5%8C%96-CommitIndex"><span class="nav-number">1.2.</span> <span class="nav-text">[C3] 为什么不持久化 CommitIndex</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E4%B8%8D-reapply-log"><span class="nav-number">1.3.</span> <span class="nav-text">[C3] 如何保证不 reapply log</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-%E5%A6%82%E6%9E%9C-Server-%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%95%B0%E6%8D%AE%E4%B8%A2%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="nav-number">1.4.</span> <span class="nav-text">[C3] 如果 Server 的持久化数据丢了怎么办</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-%E8%A2%AB%E6%8A%95%E7%A5%A8%E8%A6%81%E6%BB%A1%E8%B6%B3%E5%93%AA%E4%BA%9B%E6%9D%A1%E4%BB%B6"><span class="nav-number">1.5.</span> <span class="nav-text">[C3] 被投票要满足哪些条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-Leader-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E6%8F%90%E4%BA%A4%E4%B9%8B%E5%89%8D%E4%BB%BB%E6%9C%9F%E7%9A%84%E6%97%A5%E5%BF%97"><span class="nav-number">1.6.</span> <span class="nav-text">[C3] Leader 为什么不能提交之前任期的日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-%E7%B3%BB%E7%BB%9F%E4%B8%AD%E6%9C%89%E5%93%AA%E4%BA%9B%E5%AF%B9%E6%97%B6%E9%97%B4%E7%9A%84%E4%BE%9D%E8%B5%96"><span class="nav-number">1.7.</span> <span class="nav-text">[C3] 系统中有哪些对时间的依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C3-Leader-Transefer-%E5%85%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">1.8.</span> <span class="nav-text">[C3] Leader Transefer 全过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C4-Cluster-Membership-Changes-%E5%85%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">1.9.</span> <span class="nav-text">[C4] Cluster Membership Changes 全过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C4-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8A%A0%E5%85%A5%E6%96%B0%E7%9A%84-Node-%E4%BC%9A%E6%9C%89%E5%8F%AF%E7%94%A8%E6%80%A7%E7%9A%84%E9%97%AE%E9%A2%98%E5%B9%B6%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="nav-number">1.10.</span> <span class="nav-text">[C4] 为什么加入新的 Node 会有可用性的问题并如何解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C4-%E5%88%A0%E9%99%A4%E7%9A%84-Node-%E6%98%AF-Leader-%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="nav-number">1.11.</span> <span class="nav-text">[C4] 删除的 Node 是 Leader 怎么办</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C4-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BC%95%E5%85%A5-Pre-Vote"><span class="nav-number">1.12.</span> <span class="nav-text">[C4] 为什么引入 Pre-Vote</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C4-%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B-Pre-Vote-%E6%B2%A1%E6%9C%89%E4%BD%9C%E7%94%A8%E4%BB%A5%E5%8F%8A%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3"><span class="nav-number">1.13.</span> <span class="nav-text">[C4] 什么情况下 Pre-Vote 没有作用以及怎么解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C5-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Snapshot"><span class="nav-number">1.14.</span> <span class="nav-text">[C5] 为什么需要 Snapshot</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C5-Snapshot-%E8%A6%81%E6%8C%81%E4%B9%85%E5%8C%96%E5%93%AA%E4%BA%9B%E7%8A%B6%E6%80%81"><span class="nav-number">1.15.</span> <span class="nav-text">[C5] Snapshot 要持久化哪些状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C5-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99-Snapshot"><span class="nav-number">1.16.</span> <span class="nav-text">[C5] 什么时候 Snapshot</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C5-%E5%A6%82%E4%BD%95%E5%87%8F%E8%BD%BB-Snapshot-%E5%AF%B9-Client-Performance-%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">1.17.</span> <span class="nav-text">[C5] 如何减轻 Snapshot 对 Client Performance 的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-Client-%E5%A6%82%E4%BD%95%E6%8A%8A%E8%AF%B7%E6%B1%82%E5%8F%91%E9%80%81%E7%BB%99-Leader"><span class="nav-number">1.18.</span> <span class="nav-text">[C6] Client 如何把请求发送给 Leader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-no-op-Entry"><span class="nav-number">1.19.</span> <span class="nav-text">[C6] 为什么需要 no-op Entry</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-Client-%E6%B3%A8%E5%86%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.20.</span> <span class="nav-text">[C6] Client 注册过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-%E7%BA%BF%E6%80%A7%E4%B8%80%E8%87%B4%E6%80%A7-VS-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-number">1.21.</span> <span class="nav-text">[C6] 线性一致性 VS 顺序一致性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-Client-%E8%AF%BB%E8%BF%87%E7%A8%8B"><span class="nav-number">1.22.</span> <span class="nav-text">[C6] Client 读过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-ReadIndex-lt-x3D-ApplyIndex%EF%BC%9F"><span class="nav-number">1.23.</span> <span class="nav-text">[C6] ReadIndex &lt;&#x3D; ApplyIndex？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-Client-%E5%86%99%E8%BF%87%E7%A8%8B"><span class="nav-number">1.24.</span> <span class="nav-text">[C6] Client 写过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-Client-Session-%E9%A9%B1%E9%80%90"><span class="nav-number">1.25.</span> <span class="nav-text">[C6] Client Session 驱逐</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C6-%E4%BD%BF%E7%94%A8%E6%97%B6%E9%97%B4%E6%9C%BA%E5%88%B6%E7%9A%84%E8%AF%BB%E4%BC%98%E5%8C%96"><span class="nav-number">1.26.</span> <span class="nav-text">[C6] 使用时间机制的读优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C10-%E5%86%99%E4%BC%98%E5%8C%96"><span class="nav-number">1.27.</span> <span class="nav-text">[C10] 写优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C10-Batching-and-pipelining-%E4%BC%98%E5%8C%96"><span class="nav-number">1.28.</span> <span class="nav-text">[C10] Batching and pipelining 优化</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Tan Shun</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/11/24/Summary-The-Knowledge-Points-In-Raft/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Tan Shun">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="[Raft] Summary: The Knowledge Points In Raft | Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [Raft] Summary: The Knowledge Points In Raft
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-11-24 00:42:17" itemprop="dateCreated datePublished" datetime="2022-11-24T00:42:17+08:00">2022-11-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2022-12-13 16:39:08" itemprop="dateModified" datetime="2022-12-13T16:39:08+08:00">2022-12-13</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><strong>TL; DR</strong></p>
+<p>这是一篇关于 Raft 知识点总结的博客。总结的不全，尤其是 Snapshot 那块。<strong>如果有理解错误或者笔误的地方请联系我！</strong></p>
+<p>主要参考：</p>
+<ul>
+<li>论文：<a target="_blank" rel="noopener" href="https://github.com/ongardie/dissertation/blob/master/stanford.pdf">https://github.com/ongardie/dissertation/blob/master/stanford.pdf</a></li>
+<li>ETCD 的文档：<a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/main/raft/README.md">https://github.com/etcd-io/etcd/blob/main/raft/README.md</a></li>
+</ul>
+<span id="more"></span>
+
+
+
+<h2 id="Knowledge-Points"><a href="#Knowledge-Points" class="headerlink" title="Knowledge Points"></a>Knowledge Points</h2><h3 id="C3-持久化的状态有哪些，以及为什么"><a href="#C3-持久化的状态有哪些，以及为什么" class="headerlink" title="[C3] 持久化的状态有哪些，以及为什么"></a>[C3] 持久化的状态有哪些，以及为什么</h3><ul>
+<li>log[]</li>
+<li>currentTerm</li>
+<li>votedFor</li>
+</ul>
+<p>这三个属性都保证：一个 Term 只能给一个 Candiate 投票。</p>
+<h3 id="C3-为什么不持久化-CommitIndex"><a href="#C3-为什么不持久化-CommitIndex" class="headerlink" title="[C3] 为什么不持久化 CommitIndex"></a>[C3] 为什么不持久化 CommitIndex</h3><p>如果持久化了上述三个属性，CommitIndex 就不是必须持久化的属性。重启后设置为 0 也没关系。</p>
+<h3 id="C3-如何保证不-reapply-log"><a href="#C3-如何保证不-reapply-log" class="headerlink" title="[C3] 如何保证不 reapply log"></a>[C3] 如何保证不 reapply log</h3><p>持久化 AppliedIndex。</p>
+<h3 id="C3-如果-Server-的持久化数据丢了怎么办"><a href="#C3-如果-Server-的持久化数据丢了怎么办" class="headerlink" title="[C3] 如果 Server 的持久化数据丢了怎么办"></a>[C3] 如果 Server 的持久化数据丢了怎么办</h3><p>如果丢了的 Server 数目小于大多数，可以用新的身份重新加入集群。如果大于等于，就可能丢数据。所以必须承认还是有丢数据的可能。</p>
+<h3 id="C3-被投票要满足哪些条件"><a href="#C3-被投票要满足哪些条件" class="headerlink" title="[C3] 被投票要满足哪些条件"></a>[C3] 被投票要满足哪些条件</h3><ul>
+<li>第一种情况：Receiver 的任期等于 Sender 的任期，并且 Receiver 给 Sender 投过票，并且 Receiver 的 Log 小于等于 Sender 的 Log。</li>
+<li>第二种情况：Receiver 的任期小于 Sender 的任期，并且 Receiver 在此任期没有投过票，并且  Receiver 的 Log 小于等于 Sender 的 Log。</li>
+</ul>
+<p>日志判断大小的依据：</p>
+<ul>
+<li>Log 的 Term 大，日志大</li>
+<li>Log Term 相同的情况下，Index 越高越大</li>
+</ul>
+<h3 id="C3-Leader-为什么不能提交之前任期的日志"><a href="#C3-Leader-为什么不能提交之前任期的日志" class="headerlink" title="[C3] Leader 为什么不能提交之前任期的日志"></a>[C3] Leader 为什么不能提交之前任期的日志</h3><p>当之前任期的日志就算被 replica 了大多数份了以后依然有可能被覆盖。</p>
+<p>如下图所示，是论文中的具体例子。</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/1.png" alt="Figure1"></p>
+<p>(a) 有 5 个 Server，S1 是 Term&#x3D;2 的 Leader，现在 5 个 Server 都有 (Term&#x3D;1, Index&#x3D;1) 的日志。并且 S2 同步了 S1 的日志 (Term&#x3D;2, Index&#x3D;2)。</p>
+<p>(b) S1 发生了崩溃，S5 当上了 Term&#x3D;3 的 Leader（收到 S3，S4 的投票）。并且 S5 写入了 (Term&#x3D;3, Index&#x3D;2) 的日志。</p>
+<p>(c) S5 还没来得及同步，发生了崩溃。S1 当上了 Term&#x3D;4 的 Leader（收到 S2，S3 的投票），并且给 S2，S3 同步了 (Term&#x3D;2, Index&#x3D;2) 的日志。此时该日志已经被大多数 Replica 了。</p>
+<p>(d1) S1 发生了崩溃，S5 当上了 Term&#x3D;5 的 Leader（收到 S3，S4 的投票），在发生同步的时候把 (Term&#x3D;2, Index&#x3D;2) 日志覆盖了。<strong>也就是说，被 Replica 了大多数份了以后依然有可能被覆盖</strong></p>
+<p>也就是说，不能按日志被 Replica 的数目来设置 Commit Index。Leader 只能提交自己任期的日志。</p>
+<h3 id="C3-系统中有哪些对时间的依赖"><a href="#C3-系统中有哪些对时间的依赖" class="headerlink" title="[C3] 系统中有哪些对时间的依赖"></a>[C3] 系统中有哪些对时间的依赖</h3><p>虽然任期和日志都是 和时间无关的，但是这个系统想要稳定的持续下去，不可避免的依赖真实的系统时间。</p>
+<p><strong>broadcastTime &lt;&lt; electionTimeout &lt;&lt; MTBF</strong></p>
+<ul>
+<li><strong>&lt;&lt;</strong> 表示：表达式右值要至少大于表达式左值一个数量级。</li>
+<li><strong>MTBF</strong> 表示：Mean Time Between Failures。</li>
+</ul>
+<p>其中 <strong>broadcastTime</strong> 其实指的是 RPC 的平均传播时间，其中包括请求在网络上的传播以及数据持久化的时间。<strong>broadcastTime</strong> 和 <strong>MTBF</strong> 是底层系统的时间，Raft 需要自己设置 <strong>electionTimeout</strong>。</p>
+<p>具体含义如下：</p>
+<ul>
+<li><strong>broadcast time &lt;&lt; electionTimeout</strong></li>
+</ul>
+<p>选举的超时时间要至少比传播时间大一个数量级，不然传播还没结束，又开始新的选举了。</p>
+<ul>
+<li><strong>electionTimeout &lt;&lt; MTBF</strong></li>
+</ul>
+<p>系统崩溃的时间至少要比选举的超时时间大一个数量级，不然选举还没完成，系统又崩溃了。</p>
+<h3 id="C3-Leader-Transefer-全过程"><a href="#C3-Leader-Transefer-全过程" class="headerlink" title="[C3] Leader Transefer 全过程"></a>[C3] Leader Transefer 全过程</h3><p>Leader Server 不可避免的可能需要将 Leader 权限主动转移到其他 Server。所以在协议中涉及 Leader Transefer    。具体步骤如下：</p>
+<ul>
+<li>Leader Server 接受到 Leader Transefer 以后，不再接受后面的 Client 的请求。</li>
+<li>向目标 Server 发送日志，直到目标 Server 和自己的日志一样新。</li>
+<li>给目标 Server 发送 Timeout 的请求。</li>
+</ul>
+<p>这样目标 Server 就会立即选举超时，立即成为 Candidate，拥有比 Leader Server 更高的 Term。Leader Server 接受到目标 Server 的 RequestVote 的时候就会退化成 Follower。这样就完成了 Leader Transefer。</p>
+<p>当然目标 Server 也可能挂掉，所以为了保持可用性（不可用的时间 &lt;&#x3D; 选举时间），当 Leader Server 在一个选举时间内，发现没有完成 Leader Transefer，会停掉 Leader Transefer，再次接受 Client 的请求。</p>
+<h3 id="C4-Cluster-Membership-Changes-全过程"><a href="#C4-Cluster-Membership-Changes-全过程" class="headerlink" title="[C4] Cluster Membership Changes 全过程"></a>[C4] Cluster Membership Changes 全过程</h3><p>分布式系统中成员的变更是不可避免的。如何在成员变更的时候保证顺序一致性，又是一个新的挑战。在 Raft 中，推荐使用<strong>单步变更</strong>。</p>
+<p><strong>单步变更</strong>指的是每次只添加或者删除一个 Server。使用<strong>单步变更</strong>的原因在于：<strong>不论是添加还是删除，旧集群的 majority 和新集群的 majority 一定会发生重叠。</strong>这样就保证了 Cluster Membership Changes 的安全性。</p>
+<ul>
+<li>Leader Server 收到 Cluster Membership Changes Request</li>
+<li>等待上一次  Cluster Membership Changes 结束</li>
+<li>将 Cluster Membership Changes Append 到日志中</li>
+<li><strong>更改当前 Leader 的 Membership（不需要 commit）</strong></li>
+<li>将日志同步给其他 Server</li>
+<li>当其他 Server Append 到 log 后，修改自己的 Membership</li>
+<li>当这个 Cluster Membership Changes 提交以后，本次 Membership Changes 结束</li>
+</ul>
+<h3 id="C4-为什么加入新的-Node-会有可用性的问题并如何解决"><a href="#C4-为什么加入新的-Node-会有可用性的问题并如何解决" class="headerlink" title="[C4] 为什么加入新的 Node 会有可用性的问题并如何解决"></a>[C4] 为什么加入新的 Node 会有可用性的问题并如何解决</h3><p>以下两种情况都会引入集群可用性问题：</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221205134746973.png" alt="Figure2"></p>
+<ul>
+<li>当加入新的 Node S4 以后，由于 S4 没有任何日志，如果 S3 挂掉了，集群中的请求没办法很快达到大多数，这样就新增了可用性的问题</li>
+</ul>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221205135407856.png" alt="Figure3"></p>
+<ul>
+<li>当快速加入新的 Server 以后，由于 S4，S5，S6 没有日志，集群中的请求没办法很快达到大多数，这样同样新增了可用性的问题</li>
+</ul>
+<p>解决办法如下：</p>
+<p>加入新 Node 的时候不直接参与投票，而是以一种 <strong>Leaner</strong> 的身份加入集群，然后在<strong>合适的时候</strong>（日志同步的差不多了）再转换身份可以参与投票。</p>
+<p>选择<strong>合适的时候</strong>的方法如下：</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221205161635925.png" alt="Figure4"></p>
+<p>如图所示，日志同步其实是多个 round 同步的过程。原因是在同步的过程中也会产生新的日志。只要上一个 round 的同步时间小于选举时间就是一个把新 Node 加入集群参与投票的合适时间。</p>
+<h3 id="C4-删除的-Node-是-Leader-怎么办"><a href="#C4-删除的-Node-是-Leader-怎么办" class="headerlink" title="[C4] 删除的 Node 是 Leader 怎么办"></a>[C4] 删除的 Node 是 Leader 怎么办</h3><p>由于删除的 Node 是 Leader，所以会导致不可用一段时间。Raft 中提出了这样的删除 Leader 的一种方法：</p>
+<ul>
+<li>Leader 收到删除自己的 Request 以后，还做 Leader 同步一段时间</li>
+<li>并且在计算 commit 的时候不算自己的票</li>
+<li>一旦 commit，自己 step down</li>
+</ul>
+<p>举一个极端的例子来分析这样是可行的。假设集群中只存在两个 Server：S1 和 S2，并且 S1 是 Leader。现在要删除 S1。流程如下：</p>
+<ul>
+<li>S1 收到删除自己的 Request 以后，从成员中将自己删除，但是还做 Leader 给 S2 同步</li>
+<li>S2 收到 S1 的请求以后，从成员中将 S1 删除，发送消息给 S1</li>
+<li>S1 收到 S2 的 Response 以后，此时 1 为大多数，满足大多数，提交，S1 step down</li>
+<li>S2 没收到 S1 的 Heartbeat，S2 超时，自己做 Leader</li>
+</ul>
+<h3 id="C4-为什么引入-Pre-Vote"><a href="#C4-为什么引入-Pre-Vote" class="headerlink" title="[C4] 为什么引入 Pre-Vote"></a>[C4] 为什么引入 Pre-Vote</h3><p>当删除的 Server 不是 Leader 的时候，那个 Server 将不再收到来自 Leader 的心跳。所以会自增 Term 给其他的 Server 发送 RequestVote。导致 Leader 收到比自己大的 Term，变成 Follower。这样会影响可用性。</p>
+<p>解决这种情况有一个朴素的方案：Pre-Vote。</p>
+<p>就是在发起 RequestVote 之前，先预投票一轮，看自己能不能当上 Leader（任期大不大，日志够不够新），如果不能也就没有必要发送 RequestVote 了。</p>
+<h3 id="C4-什么情况下-Pre-Vote-没有作用以及怎么解决"><a href="#C4-什么情况下-Pre-Vote-没有作用以及怎么解决" class="headerlink" title="[C4] 什么情况下 Pre-Vote 没有作用以及怎么解决"></a>[C4] 什么情况下 Pre-Vote 没有作用以及怎么解决</h3><p>在删除 Node 的一些情况下，Pre-Vote 依然没有作用，依然会扰乱当前的集群。例子如下：</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221207213413360.png" alt="Figure5"></p>
+<p>当 S4 是 Leader 要删除 S1 的时候。当 S4 把 Index 为 4 的日志 append 到日志以后，就不再给 S1 发送消息了。此时 S1 可能正好选举超时，由于 S2，S3 的日志和 S1 一样新。所以 S1 可能当上 Leader，这样就扰乱了当前的集群。</p>
+<p>解决办法如下：</p>
+<blockquote>
+<p>if a server receives a RequestVote request within the minimum election timeout of hearing from a current leader, it does not update its term or grant its vote. It can either drop the request, reply with a vote denial, or delay the request;</p>
+</blockquote>
+<p>如果一个 Server 在收到 Leader 的心跳之后的最小选举超时时间内收到了更新 term 或者请求投票的请求，那么这个 Server 可以选择拒绝这个请求。</p>
+<p>这样就保证了一个高 Term 请求扰乱当前集群，降低可用性。但是这样和之前提到了 Leader Transfer 有矛盾。做法应该是在 Leader Transfer 之后的 Request Vote 中加上一个特殊的字段，用来表示就是来扰乱集群的。</p>
+<h3 id="C5-为什么需要-Snapshot"><a href="#C5-为什么需要-Snapshot" class="headerlink" title="[C5] 为什么需要 Snapshot"></a>[C5] 为什么需要 Snapshot</h3><ol>
+<li>减少 Raft Log 占用空间</li>
+<li>减少日志从 Leader 到落后太多的 Follower 复制的开销</li>
+</ol>
+<h3 id="C5-Snapshot-要持久化哪些状态"><a href="#C5-Snapshot-要持久化哪些状态" class="headerlink" title="[C5] Snapshot 要持久化哪些状态"></a>[C5] Snapshot 要持久化哪些状态</h3><ol>
+<li>这个 Snapshot 最后日志的 Index</li>
+<li>这个 Snapshot 最后日志的 Term</li>
+<li>这个 Snapshot 本身</li>
+</ol>
+<h3 id="C5-什么时候-Snapshot"><a href="#C5-什么时候-Snapshot" class="headerlink" title="[C5] 什么时候 Snapshot"></a>[C5] 什么时候 Snapshot</h3><p>在 Raft 实现中，每一个 Server 都可以 Snapshot。这样降低了只有 Leader Snapshot 然后分发给其他 Server 的各种开销。</p>
+<p>选择一个合适的时机去做 Snapshot 是一件重要的事情。论文中提供了判断合适时机的方法：</p>
+<blockquote>
+<p>Servers take a snapshot once the size of the log exceeds the size of the previous snapshot times a configurable expansion factor. The expansion factor trades off disk bandwidth for space utilization. </p>
+</blockquote>
+<p>就是设置一个阈值 a，当可以做 Snapshot 的 Log 的 size 是 Snapshot 的 a 倍的时候就可以选择做 Snapshot 了。</p>
+<h3 id="C5-如何减轻-Snapshot-对-Client-Performance-的影响"><a href="#C5-如何减轻-Snapshot-对-Client-Performance-的影响" class="headerlink" title="[C5] 如何减轻 Snapshot 对 Client Performance 的影响"></a>[C5] 如何减轻 Snapshot 对 Client Performance 的影响</h3><p>Snapshot 会影响 Bandwidth，所以会影响写入性能，论文中提供了优化的思路：</p>
+<ul>
+<li>AppendEntries 使用的物理设备和 Snapshot 使用的物理设备不一致</li>
+<li>在 Minority 的 Server 上做 Snapshot</li>
+</ul>
+<h3 id="C6-Client-如何把请求发送给-Leader"><a href="#C6-Client-如何把请求发送给-Leader" class="headerlink" title="[C6] Client 如何把请求发送给 Leader"></a>[C6] Client 如何把请求发送给 Leader</h3><ol>
+<li><p>如果非 Leader 收到了 Client 的请求，返回知道的 Leader 的信息。这样的好处就是<strong>之后的请求都会走 Leader，速度快</strong></p>
+</li>
+<li><p>或者如果非 Leader 收到 Client 的请求，可以作为访问 Leader 的 Proxy。这样的好处在于<strong>只读情况下，可以通过 readIndex 这样的方法降低 Leader 的负载</strong></p>
+</li>
+<li><p>对于 Minority 的 Leader 来说，一旦在选举超时时间内没有成功给 Majority 的 server 发送心跳，自己回退成 Follower。</p>
+</li>
+</ol>
+<h3 id="C6-为什么需要-no-op-Entry"><a href="#C6-为什么需要-no-op-Entry" class="headerlink" title="[C6] 为什么需要 no-op Entry"></a>[C6] 为什么需要 no-op Entry</h3><p>因为 Leader 不能提交不是自己任期的日志，如果新 Leader 一直没有收到 Client 的请求，那么一直没有该任期的日志就会一直不能更新 commitIndex。No-op Entry 就是一个该任期的没有任何操作的日志，用来后续更新 commitIndex。</p>
+<h3 id="C6-Client-注册过程"><a href="#C6-Client-注册过程" class="headerlink" title="[C6] Client 注册过程"></a>[C6] Client 注册过程</h3><p>由于 Client 与 Server 的交互消息存在丢失的风险，Client 的一个 Command 可能被 Apply 多次。原因是 Client 的 Response 因为网络问题 Client 没有收到，导致 Client Retry 。</p>
+<p>为了避免 Server 的 State Machine Apply 一个 Command 多次，Server 必须识别出重复的 Request。</p>
+<p>为了实现这一点，Server 给每一个 Client 维护了一个 Session。首先是 Client 注册过程，为了识别每一个 Client：</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221208235257735.png" alt="Figure6"></p>
+<p>重要：</p>
+<ul>
+<li>等这个命令提交以后在 State Machine 中存储这个 Clinet 的 Session。</li>
+<li>返回一个 Unique Identifier。</li>
+</ul>
+<h3 id="C6-线性一致性-VS-顺序一致性"><a href="#C6-线性一致性-VS-顺序一致性" class="headerlink" title="[C6] 线性一致性 VS 顺序一致性"></a>[C6] 线性一致性 VS 顺序一致性</h3><p>我的理解是这样的：</p>
+<p><strong>「线性一致性」</strong>保证了在事务 A 提交之后开始的事务一定能读到事务 A 的结果，每个事务是一个接着一个执行的。而<strong>「顺序一致性」</strong>是多个事务的结果可以用一个事务接着一个事务执行的结果来解释。而具体的两个事务之间没有一定的保证。</p>
+<p>举一个满足顺序一致性但是不满足线性一致性的例子：</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/Sequential-Consistency.svg" alt="Figure7"></p>
+<p>图中横轴代表时间，纵轴代表不同的事务。<strong>W(x, 2)</strong> 表示向 x 中写入 2。<strong>R(x, 2)</strong> 表示从 x 中读出 2。一个事务的开始时间是这个事务的最左边事件的左边框结束时间是最右边事务的最右边框。</p>
+<p>图中事务 C 读到 X &#x3D; 2 明显不满足线性一致性。但是这四个事务可以满足顺序一致性（图中下面的 Reordered）。</p>
+<p><strong>这是我自己的理解！如果有不对的地方，请向我指出！谢谢</strong></p>
+<p><strong>文章中好像只要保证每次读到的 commitIndex 保持单调就行了。</strong></p>
+<h3 id="C6-Client-读过程"><a href="#C6-Client-读过程" class="headerlink" title="[C6] Client 读过程"></a>[C6] Client 读过程</h3><p>有了之前<strong>线性一致性 VS 顺序一致性</strong>，在我看来，在 Raft 中每一次读或者每一次写，就是一个事务。为了实现 「线性一致性」的读，有一个朴素的想法就是把读也写入 Raft Log 中。这样 apply 的时候一定能被到之前提交的写。</p>
+<p>但是论文中提出了一个优化思路：<strong>readIndex</strong>。本质就是：得到当前最大的 CommitIndex，然后假设读就是紧跟这个 Index 后面。然后等待 State Machine 至少 Apply Index 到 <strong>readIndex</strong> 再返回。</p>
+<p>这样同样满足<strong>「线性一致性」</strong>的。在这个时间点之前提交的都能读到。不会读到旧数据。</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221211171015112.png" alt="Figure7"></p>
+<p>重要：</p>
+<ul>
+<li>Leader 获得 readIndex 办法就是给所有的 Server 发送心跳，确保自己是 Leader，如果超过选举超时时间还没收到大多数的 response，自己回退成 Follower。</li>
+<li>Follower 做 Proxy 的时候，向 Leader 询问 readIndex，然后 Leader 再做一遍上述操作。</li>
+</ul>
+<h3 id="C6-ReadIndex-lt-x3D-ApplyIndex？"><a href="#C6-ReadIndex-lt-x3D-ApplyIndex？" class="headerlink" title="[C6] ReadIndex &lt;&#x3D; ApplyIndex？"></a>[C6] ReadIndex &lt;&#x3D; ApplyIndex？</h3><p>文章中说的都是 At Least。所以 ReadIndex &lt;&#x3D; ApplyIndex 就可以实现线性一致性了。不一定要等于。</p>
+<h3 id="C6-Client-写过程"><a href="#C6-Client-写过程" class="headerlink" title="[C6] Client 写过程"></a>[C6] Client 写过程</h3><p>为了防止重复执行，Server State Machine 存储了 Client 执行过的 Command 的结果。每一个 Command 有一个 SeqNumber。用来识别重复的 Command。</p>
+<p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221211205646109.png" alt="Figure8"></p>
+<p>重点：</p>
+<ul>
+<li>在 Apply 的时候如果 clientID 存不存在或者 Session 是否过期。如果没过期并且 State Machine 存储了 SeqNumber 的结果，直接返回。否则 apply 以后存储结果再返回。</li>
+<li>判断 Session 过期的办法：小于存储的 Client 的最小 SeqNumber。</li>
+</ul>
+<h3 id="C6-Client-Session-驱逐"><a href="#C6-Client-Session-驱逐" class="headerlink" title="[C6] Client Session 驱逐"></a>[C6] Client Session 驱逐</h3><p>由于不能无限存储一个 Client 的 Session。所以需要选择 Session 去驱逐。并且驱逐是要写进日志的。得所有 Server 一起同步。</p>
+<p>当驱逐这个 Client 的 Session 的时候不能简单的直接创建一个新的 Unique Identifier。这样还是有重复执行的风险。</p>
+<p>所以对于 State Machine 来说需要判断是一个新的 Client，还是这个 Client 的 SeqNumebr 被过期清理了。如果是过期清理，Client 就得考虑是新增 SeqNumber 去执行新的请求还是直接 Crash。</p>
+<h3 id="C6-使用时间机制的读优化"><a href="#C6-使用时间机制的读优化" class="headerlink" title="[C6] 使用时间机制的读优化"></a>[C6] 使用时间机制的读优化</h3><p><strong>readIndex</strong> 的读优化不依赖真实的时间。如果所有的 Server 的时间是同步的，那么可以用 Lease 优化（但是真实的系统很难保证）。</p>
+<p>之前提到过如果 Leader 发送心跳给其他 Server 了，这些 Server 都会保持小于选举超时的时间不会给其他 Server 投票。这样就保证了：<strong>如果此 Leader 刚给其他 Server 发送过心跳，那么就会有这么一段时间，Leader 就是 Leader 不会变成别人。那确定最大 commitIndex 的时候也不用重新发送心跳了，这就是 Lease 优化</strong>。</p>
+<p>如果 Server 间的时间不同步，依然存在读旧数据的风险。但是，即使时间不同步，也有办法实现一致性读。<strong>Server 在返回的每个请求上带上 index，Client 维护自己见过最新的 index，Client 发送请求的时候带上这个 index。</strong>如果 Server 见到请求中的 index 比自己的 ApplyIndex 大就拒绝这个请求。</p>
+<h3 id="C10-写优化"><a href="#C10-写优化" class="headerlink" title="[C10] 写优化"></a>[C10] 写优化</h3><p><img src="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/image-20221212000204351.png" alt="Figure9"></p>
+<p>简单来说就是把 Sync 磁盘与和 Follower 同步日志并行处理。</p>
+<h3 id="C10-Batching-and-pipelining-优化"><a href="#C10-Batching-and-pipelining-优化" class="headerlink" title="[C10] Batching and pipelining 优化"></a>[C10] Batching and pipelining 优化</h3><p>Batching：Leader 向 Follower 同步的时候发送多个 Entry。</p>
+<p>Pipelining：<strong>Leader 每次发送 AppendEntries 不管成功与否直接更新 NextIndex</strong>，这样在正常的情况下，Follower 可以在 Sync 的上一次 AppendEntries 的同时，从网络中接收新的 AppendEntries。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/raft/" rel="tag"># raft</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/26/English-Lesson-15-Gift-Shopping/" rel="prev" title="[English] Lesson 15: Gift Shopping">
+                  <i class="fa fa-chevron-left"></i> [English] Lesson 15: Gift Shopping
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tan Shun</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
