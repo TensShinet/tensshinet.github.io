@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha256-xejo6yLi6vGtAjcMIsY8BHdKsLg7QynVlFMzdQgUuy8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.12.3","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="TL; DR Summarize how to do the estimation.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[SD] Summary: Chapter 5">
+<meta property="og:url" content="http://example.com/2023/09/05/Summary-Chapter-5/index.html">
+<meta property="og:site_name" content="Tan Shun&#39;s Blog">
+<meta property="og:description" content="TL; DR Summarize how to do the estimation.">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-09-05T15:38:29.000Z">
+<meta property="article:modified_time" content="2023-09-05T15:39:55.740Z">
+<meta property="article:author" content="Tan Shun">
+<meta property="article:tag" content="sd">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2023/09/05/Summary-Chapter-5/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/09/05/Summary-Chapter-5/","path":"2023/09/05/Summary-Chapter-5/","title":"[SD] Summary: Chapter 5"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>[SD] Summary: Chapter 5 | Tan Shun's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tan Shun's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#QA"><span class="nav-number">1.</span> <span class="nav-text">QA</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-many-commonly-used-types-of-servers-are-in-the-data-center-And-what-are-they"><span class="nav-number">1.1.</span> <span class="nav-text">How many commonly used types of servers are in the data center? And what are they?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tell-me-the-important-rate-you-have-to-remember"><span class="nav-number">1.2.</span> <span class="nav-text">Tell me the important rate you have to remember.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#If-the-DAU-is-500M-the-requests-on-average-are-20-per-day-and-the-QPS-of-a-server-is-8000-please-tell-me-the-total-requests-per-day-total-average-requests-per-second-and-total-servers-required"><span class="nav-number">1.3.</span> <span class="nav-text">If the DAU is 500M, the requests on average are 20 per day, and the QPS of a server is 8000, please tell me the total requests per day, total average requests per second, and total servers required.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#If-the-DAU-is-250M-the-daily-tweets-are-3-the-storage-required-per-tweet-is-250B-the-storage-required-per-image-is-300-kilobytes-and-the-storage-per-video-is-3-megabytes-please-tell-me-the-total-requests-per-day-the-storage-for-tweets-per-day-the-storage-of-images-per-day-the-storage-of-videos-per-day-and-the-total-storage-per-day"><span class="nav-number">1.4.</span> <span class="nav-text">If the DAU is 250M, the daily tweets are 3, the storage required per tweet is 250B, the storage required per image is 300 kilobytes, and the storage per video is 3 megabytes, please tell me the total requests per day, the storage for tweets per day, the storage of images per day, the storage of videos per day, and the total storage per day.</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Tan Shun</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/05/Summary-Chapter-5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Tan Shun">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="[SD] Summary: Chapter 5 | Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [SD] Summary: Chapter 5
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2023-09-05 23:38:29 / Modified: 23:39:55" itemprop="dateCreated datePublished" datetime="2023-09-05T23:38:29+08:00">2023-09-05</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><strong>TL; DR</strong></p>
+<p>Summarize how to do the estimation.</p>
+<span id="more"></span>
+
+
+
+<h2 id="QA"><a href="#QA" class="headerlink" title="QA"></a>QA</h2><h3 id="How-many-commonly-used-types-of-servers-are-in-the-data-center-And-what-are-they"><a href="#How-many-commonly-used-types-of-servers-are-in-the-data-center-And-what-are-they" class="headerlink" title="How many commonly used types of servers are in the data center? And what are they?"></a>How many commonly used types of servers are in the data center? And what are they?</h3><p>There are three commonly used types of servers in the data center. They are:</p>
+<ul>
+<li>Web servers: Depending on the particle situation, web servers’ memory and storage resources can be small to medium. However, such servers require good computational resources.</li>
+<li>Application servers: They may require extensive computational and storage resources but need more available memory resources.</li>
+<li>Storage servers: They require a lot of non-volatile storage resources.</li>
+</ul>
+<h3 id="Tell-me-the-important-rate-you-have-to-remember"><a href="#Tell-me-the-important-rate-you-have-to-remember" class="headerlink" title="Tell me the important rate you have to remember."></a>Tell me the important rate you have to remember.</h3><table>
+<thead>
+<tr>
+<th>QPS handled by MySQL</th>
+<th>It’s approximately on the order of several thousand.</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QPS handled by key-value store</td>
+<td>It’s approximately on the order of tens of thousands.</td>
+</tr>
+<tr>
+<td>QPS handled by cache server</td>
+<td>It’s approximately on the order of several hundred thousand.</td>
+</tr>
+</tbody></table>
+<h3 id="If-the-DAU-is-500M-the-requests-on-average-are-20-per-day-and-the-QPS-of-a-server-is-8000-please-tell-me-the-total-requests-per-day-total-average-requests-per-second-and-total-servers-required"><a href="#If-the-DAU-is-500M-the-requests-on-average-are-20-per-day-and-the-QPS-of-a-server-is-8000-please-tell-me-the-total-requests-per-day-total-average-requests-per-second-and-total-servers-required" class="headerlink" title="If the DAU is 500M, the requests on average are 20 per day, and the QPS of a server is 8000, please tell me the total requests per day, total average requests per second, and total servers required."></a>If the DAU is 500M, the requests on average are 20 per day, and the QPS of a server is 8000, please tell me the total requests per day, total average requests per second, and total servers required.</h3><ul>
+<li>Five hundred million times twenty, which is 10 billion for the total daily requests.</li>
+<li>Ten billion divided by eighty-six thousand four hundred is about one hundred fifteen thousand for the total average requests per second.</li>
+<li>There are two cases here:<ul>
+<li>We assume the traffic is even. It’s one hundred fifteen thousand divided by eight thousand. The result is about 15. </li>
+<li>There is only one second for the daily request. It’s ten billion divided by eight thousand. The result is about one million two hundred fifty thousand.</li>
+</ul>
+</li>
+</ul>
+<h3 id="If-the-DAU-is-250M-the-daily-tweets-are-3-the-storage-required-per-tweet-is-250B-the-storage-required-per-image-is-300-kilobytes-and-the-storage-per-video-is-3-megabytes-please-tell-me-the-total-requests-per-day-the-storage-for-tweets-per-day-the-storage-of-images-per-day-the-storage-of-videos-per-day-and-the-total-storage-per-day"><a href="#If-the-DAU-is-250M-the-daily-tweets-are-3-the-storage-required-per-tweet-is-250B-the-storage-required-per-image-is-300-kilobytes-and-the-storage-per-video-is-3-megabytes-please-tell-me-the-total-requests-per-day-the-storage-for-tweets-per-day-the-storage-of-images-per-day-the-storage-of-videos-per-day-and-the-total-storage-per-day" class="headerlink" title="If the DAU is 250M, the daily tweets are 3, the storage required per tweet is 250B, the storage required per image is 300 kilobytes, and the storage per video is 3 megabytes, please tell me the total requests per day, the storage for tweets per day, the storage of images per day, the storage of videos per day, and the total storage per day."></a>If the DAU is 250M, the daily tweets are 3, the storage required per tweet is 250B, the storage required per image is 300 kilobytes, and the storage per video is 3 megabytes, please tell me the total requests per day, the storage for tweets per day, the storage of images per day, the storage of videos per day, and the total storage per day.</h3><ul>
+<li>Total requests per day are three times two hundred million. The result is seventy hundred fifty million.</li>
+<li>The storage of tweets per day is two hundred fifty bytes times seven hundred fifty million. The result is about one hundred eighty-seven point five gigabytes.</li>
+<li>Let’s assume only ten percent of tweets with one image. As a result, the storage of images per day is seven hundred fifty million times zero point one times two hundred kilobytes. The result is fifteen terabytes.</li>
+<li>Let’s assume only five percent of tweets with one video. As a result, the storage of videos per day is seven hundred fifty million times zero point zero five times three megabytes. The result is about one hundred twelve point five terabytes.</li>
+<li>The total storage is zero point one eight seven five TB plus fifteen TB plus one hundred twelve point five. The result is one hundred-eight terabytes.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/sd/" rel="tag"># sd</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/03/Summary-System-Design-From-Chapter-1-to-Chapter-4/" rel="prev" title="[SD] Summary: System Design From Chapter 1 to Chapter 4">
+                  <i class="fa fa-chevron-left"></i> [SD] Summary: System Design From Chapter 1 to Chapter 4
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tan Shun</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

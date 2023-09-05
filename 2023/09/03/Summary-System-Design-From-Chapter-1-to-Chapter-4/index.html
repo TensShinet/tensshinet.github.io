@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha256-xejo6yLi6vGtAjcMIsY8BHdKsLg7QynVlFMzdQgUuy8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.12.3","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="TL; DR I started to focus on System Design recently. This blog series will record what I learn in a Q&amp;A format. By the way, the material is from Grokking Modern System Design Interview for Enginee">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[SD] Summary: System Design From Chapter 1 to Chapter 4">
+<meta property="og:url" content="http://example.com/2023/09/03/Summary-System-Design-From-Chapter-1-to-Chapter-4/index.html">
+<meta property="og:site_name" content="Tan Shun&#39;s Blog">
+<meta property="og:description" content="TL; DR I started to focus on System Design recently. This blog series will record what I learn in a Q&amp;A format. By the way, the material is from Grokking Modern System Design Interview for Enginee">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-09-03T01:21:42.000Z">
+<meta property="article:modified_time" content="2023-09-05T13:21:32.628Z">
+<meta property="article:author" content="Tan Shun">
+<meta property="article:tag" content="sd">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2023/09/03/Summary-System-Design-From-Chapter-1-to-Chapter-4/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/09/03/Summary-System-Design-From-Chapter-1-to-Chapter-4/","path":"2023/09/03/Summary-System-Design-From-Chapter-1-to-Chapter-4/","title":"[SD] Summary: System Design From Chapter 1 to Chapter 4"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>[SD] Summary: System Design From Chapter 1 to Chapter 4 | Tan Shun's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tan Shun's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Q-amp-A"><span class="nav-number">1.</span> <span class="nav-text">Q&amp;A</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-do-you-allocate-time-during-a-system-design-interview"><span class="nav-number">1.1.</span> <span class="nav-text">How do you allocate time during a system design interview?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-are-SDIs-different-from-other-interviews"><span class="nav-number">1.2.</span> <span class="nav-text">How are SDIs different from other interviews?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-do-we-tackle-a-design-question"><span class="nav-number">1.3.</span> <span class="nav-text">How do we tackle a design question?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-not-to-do-in-an-interview"><span class="nav-number">1.4.</span> <span class="nav-text">What not to do in an interview?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-does-RPC-work"><span class="nav-number">1.5.</span> <span class="nav-text">How does RPC work?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-categories-related-to-consistency"><span class="nav-number">1.6.</span> <span class="nav-text">What are the categories related to consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-the-eventual-consistency"><span class="nav-number">1.7.</span> <span class="nav-text">What is the eventual consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-the-causal-consistency"><span class="nav-number">1.8.</span> <span class="nav-text">What is the causal consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-is-the-linearizability-consistency"><span class="nav-number">1.9.</span> <span class="nav-text">What is the linearizability consistency?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-categories-related-to-failure"><span class="nav-number">1.10.</span> <span class="nav-text">What are the categories related to failure?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-do-we-measure-the-availability"><span class="nav-number">1.11.</span> <span class="nav-text">How do we measure the availability?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-do-we-measure-the-reliability"><span class="nav-number">1.12.</span> <span class="nav-text">How do we measure the reliability?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#What-are-the-scalability-approaches"><span class="nav-number">1.13.</span> <span class="nav-text">What are the scalability approaches?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-do-we-measure-the-maintainability"><span class="nav-number">1.14.</span> <span class="nav-text">How do we measure the maintainability?</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Tan Shun</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/03/Summary-System-Design-From-Chapter-1-to-Chapter-4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Tan Shun">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="[SD] Summary: System Design From Chapter 1 to Chapter 4 | Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [SD] Summary: System Design From Chapter 1 to Chapter 4
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-03 09:21:42" itemprop="dateCreated datePublished" datetime="2023-09-03T09:21:42+08:00">2023-09-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-09-05 21:21:32" itemprop="dateModified" datetime="2023-09-05T21:21:32+08:00">2023-09-05</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><strong>TL; DR</strong></p>
+<p>I started to focus on System Design recently. This blog series will record what I learn in a <strong>Q&amp;A format</strong>. By the way, the material is from <a target="_blank" rel="noopener" href="https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers">Grokking Modern System Design Interview for Engineers &amp; Managers</a>. In this article, I will summarise what I have learned from Chapter 1 to Chapter 4.</p>
+<span id="more"></span>
+
+
+
+<h2 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><h3 id="How-do-you-allocate-time-during-a-system-design-interview"><a href="#How-do-you-allocate-time-during-a-system-design-interview" class="headerlink" title="How do you allocate time during a system design interview?"></a>How do you allocate time during a system design interview?</h3><p>The system design interview is an iterative process. As a result, I will develop an overall design that takes about 80 percent of my time and a second iteration for improvements.</p>
+<h3 id="How-are-SDIs-different-from-other-interviews"><a href="#How-are-SDIs-different-from-other-interviews" class="headerlink" title="How are SDIs different from other interviews?"></a>How are SDIs different from other interviews?</h3><p>Like any other interview, we need to approach the systems design interviews strategically. SDIs are different from the coding interview. There’s rarely any coding required in this interview. An SDI takes place at a much higher level of abstraction. We must figure out the requirements and map them onto the computational components and the high-level communication protocols connecting these subsystems. The final answer doesn’t matter. What matters is the process and journey a good applicant takes through the interview.</p>
+<h3 id="How-do-we-tackle-a-design-question"><a href="#How-do-we-tackle-a-design-question" class="headerlink" title="How do we tackle a design question?"></a>How do we tackle a design question?</h3><p>Here are the best practices:</p>
+<ol>
+<li><p>Ask the <strong>refining</strong> questions to <strong>solidify</strong> the requirements until we find it can be solved within the limited time.</p>
+<p>We should ensure that we’re solving the right problem. Often, it helps to divide the requirements into two groups:</p>
+<ol>
+<li>Requirements that the clients need directly.</li>
+<li>Requirements that are needed indirectly.</li>
+</ol>
+</li>
+<li><p>Handle data</p>
+<p>We must identify and understand data and its characteristics to look for appropriate data storage systems and processing components. Like, we can ask some questions:</p>
+<ol>
+<li>What’s the size of the data right now?</li>
+<li>Is the data read-heavy or write-heavy?</li>
+</ol>
+</li>
+<li><p>Engage the interviewer to ensure that they understand our thought process.</p>
+<p>There are two main discussions with the interviewer: </p>
+<ol>
+<li><p>Discuss the components</p>
+<p>An example could be the type of database—Will a conventional database work, or should we use a NoSQL database?</p>
+</li>
+<li><p>Discuss the trade-offs</p>
+<p>We should point out weaknesses in our design to our interviewer and explain why we have yet to tack them. An example could be that our current design can’t handle ten times more load, but we don’t expect our system to reach that level anytime soon.</p>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="What-not-to-do-in-an-interview"><a href="#What-not-to-do-in-an-interview" class="headerlink" title="What not to do in an interview?"></a>What not to do in an interview?</h3><ol>
+<li>Don’t start building without a plan.</li>
+<li>If we don’t know something, we don’t paper over it, and we don’t pretend to know it.</li>
+</ol>
+<h3 id="How-does-RPC-work"><a href="#How-does-RPC-work" class="headerlink" title="How does RPC work?"></a>How does RPC work?</h3><p><strong>RPC</strong> is an interprocess communication protocol widely used in distributed systems. When we make a remote procedure call, the calling environment is paused, and the procedure parameters are sent over the network to the environment where the procedure will be executed. </p>
+<p>When the procedure execution finishes, the results are returned to the calling environment, where the excursion restarts as a regular procedure call.</p>
+<h3 id="What-are-the-categories-related-to-consistency"><a href="#What-are-the-categories-related-to-consistency" class="headerlink" title="What are the categories related to consistency?"></a>What are the categories related to consistency?</h3><p>There are two ends of the consistency spectrum: </p>
+<ul>
+<li>Weakest consistency</li>
+<li>Strongest consistency</li>
+</ul>
+<p>In detail, they are <strong>Eventual consistency</strong>, <strong>Casual consistency</strong>, <strong>Sequential consistency</strong>, and <strong>Linearizability consistency</strong>.</p>
+<h3 id="What-is-the-eventual-consistency"><a href="#What-is-the-eventual-consistency" class="headerlink" title="What is the eventual consistency?"></a>What is the eventual consistency?</h3><p>Eventual consistency ensures that all replicas will eventually have the same value as the read request, but the returned value isn’t meant to be the latest value. However, the value will finally reach its latest state.</p>
+<p>The <strong>domain name system</strong> is a highly available system that enables name lookups to a hundred million devices across the Internet. It uses an eventual consistency model and doesn’t necessarily return the latest value.</p>
+<h3 id="What-is-the-causal-consistency"><a href="#What-is-the-causal-consistency" class="headerlink" title="What is the causal consistency?"></a>What is the causal consistency?</h3><p>Causal consistency works by categorizing operations into dependent and independent operations. Dependent operations are also called causally-related operations. Causal consistency preserves the order of the causally related operations.</p>
+<p>The causal consistency model is used in a commenting system. For example, for the replies to a comment on a Facebook post, we want to display comments after it replies. This is because a cause-and-effect relationship exists between a comment and its replies.</p>
+<h3 id="What-is-the-linearizability-consistency"><a href="#What-is-the-linearizability-consistency" class="headerlink" title="What is the linearizability consistency?"></a>What is the linearizability consistency?</h3><p>This model ensures that a read request from any replicas will get the latest write value. Once the client acknowledges that the write operation has been performed, other clients can see that value.</p>
+<p>Updating an account’s password requires linearizability consistency. For example, if I change my bank password, the attacker cannot use a stale password to log in to my account.</p>
+<h3 id="What-are-the-categories-related-to-failure"><a href="#What-are-the-categories-related-to-failure" class="headerlink" title="What are the categories related to failure?"></a>What are the categories related to failure?</h3><ul>
+<li><p>Fail-stop</p>
+</li>
+<li><p>Crash</p>
+</li>
+<li><p>Omission Failures</p>
+<p>In <strong>omission failures</strong>, the node fails to send or receive messages. There are two types of omission failures: <strong>send omission failure</strong> and <strong>receive omission failure</strong>.</p>
+</li>
+<li><p>Temporal Failures</p>
+<p>The node generates correct results in temporal failures, but it is too late to be useful.</p>
+</li>
+<li><p>Byzantine Failures</p>
+<p>In <strong>byzantine failures</strong>, the node exhibits <strong>arbitrary</strong> behavior, like transmitting random messages at arbitrary times.</p>
+</li>
+</ul>
+<h3 id="How-do-we-measure-the-availability"><a href="#How-do-we-measure-the-availability" class="headerlink" title="How do we measure the availability?"></a>How do we measure the availability?</h3><p>The availability in percent is <code>(Total Time - Amount of Time Service was Down/Total Time) * 100</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Availability Percentages versus Service Downtime</th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Availability %</strong></td>
+<td><strong>Downtime per Year</strong></td>
+<td><strong>Downtime per Month</strong></td>
+<td><strong>Downtime per Week</strong></td>
+</tr>
+<tr>
+<td>90% (1 nine)</td>
+<td>36.5 days</td>
+<td>72 hours</td>
+<td>16.8 hours</td>
+</tr>
+<tr>
+<td>99% (2 nines)</td>
+<td>3.65 days</td>
+<td>7.20 hours</td>
+<td>1.68 hours</td>
+</tr>
+<tr>
+<td>99.5% (2 nines)</td>
+<td>1.83 days</td>
+<td>3.60 hours</td>
+<td>50.4 minutes</td>
+</tr>
+<tr>
+<td>99.9% (3 nines)</td>
+<td>8.76 hours</td>
+<td>43.8 minutes</td>
+<td>10.1 minutes</td>
+</tr>
+<tr>
+<td>99.99% (4 nines)</td>
+<td>52.56 minutes</td>
+<td>4.32 minutes</td>
+<td>1.01 minutes</td>
+</tr>
+<tr>
+<td>99.999% (5 nines)</td>
+<td>5.26 minutes</td>
+<td>25.9 seconds</td>
+<td>6.05 seconds</td>
+</tr>
+<tr>
+<td>99.9999% (6 nines)</td>
+<td>31.5 seconds</td>
+<td>2.59 seconds</td>
+<td>0.605 seconds</td>
+</tr>
+<tr>
+<td>99.99999% (7 nines)</td>
+<td>3.15 seconds</td>
+<td>0.259 seconds</td>
+<td>0.0605 seconds</td>
+</tr>
+</tbody></table>
+<h3 id="How-do-we-measure-the-reliability"><a href="#How-do-we-measure-the-reliability" class="headerlink" title="How do we measure the reliability?"></a>How do we measure the reliability?</h3><p>We often use the <strong>mean time between failures(MTBF)</strong> and the <strong>mean time to repair(MTTR)</strong> to measure reliability.</p>
+<ul>
+<li>MTBF: <code>(Total Elapsed Time - Sum of Downtime)/Total Number of Failures</code>.</li>
+<li>MTTR: <code>Total Maintenance Time/Total Number of Repairs</code>.</li>
+</ul>
+<h3 id="What-are-the-scalability-approaches"><a href="#What-are-the-scalability-approaches" class="headerlink" title="What are the scalability approaches?"></a>What are the scalability approaches?</h3><ul>
+<li>Vertical scalability—scaling up</li>
+<li>Horizontal scalability—scaling out</li>
+</ul>
+<h3 id="How-do-we-measure-the-maintainability"><a href="#How-do-we-measure-the-maintainability" class="headerlink" title="How do we measure the maintainability?"></a>How do we measure the maintainability?</h3><p>We use the <strong>mean time to repair(MTTR)</strong> to measure maintainability.</p>
+<ul>
+<li>MTTR: <code>Total Maintenance Time/Total Number of Repairs</code></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/sd/" rel="tag"># sd</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/11/24/Summary-The-Knowledge-Points-In-Raft/" rel="prev" title="[Raft] Summary: The Knowledge Points In Raft">
+                  <i class="fa fa-chevron-left"></i> [Raft] Summary: The Knowledge Points In Raft
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/09/05/Summary-Chapter-5/" rel="next" title="[SD] Summary: Chapter 5">
+                  [SD] Summary: Chapter 5 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tan Shun</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
