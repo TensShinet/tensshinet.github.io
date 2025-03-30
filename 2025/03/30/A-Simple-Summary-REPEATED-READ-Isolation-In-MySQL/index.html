@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha256-xejo6yLi6vGtAjcMIsY8BHdKsLg7QynVlFMzdQgUuy8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.12.3","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="TL; DR REPEATED READ is the default isolation level in MySQL. It solves the following:  Dirty reads: reads uncommitted data (READ COMMITTED has solved this) Nonrepeatable reads: reads different data i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[MySQL] A Simple Summary: REPEATED READ Isolation In MySQL">
+<meta property="og:url" content="http://example.com/2025/03/30/A-Simple-Summary-REPEATED-READ-Isolation-In-MySQL/index.html">
+<meta property="og:site_name" content="Tan Shun&#39;s Blog">
+<meta property="og:description" content="TL; DR REPEATED READ is the default isolation level in MySQL. It solves the following:  Dirty reads: reads uncommitted data (READ COMMITTED has solved this) Nonrepeatable reads: reads different data i">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-03-30T14:16:06.000Z">
+<meta property="article:modified_time" content="2025-03-30T17:31:03.799Z">
+<meta property="article:author" content="Tan Shun">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2025/03/30/A-Simple-Summary-REPEATED-READ-Isolation-In-MySQL/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/03/30/A-Simple-Summary-REPEATED-READ-Isolation-In-MySQL/","path":"2025/03/30/A-Simple-Summary-REPEATED-READ-Isolation-In-MySQL/","title":"[MySQL] A Simple Summary: REPEATED READ Isolation In MySQL"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>[MySQL] A Simple Summary: REPEATED READ Isolation In MySQL | Tan Shun's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Tan Shun's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Nonrepeatable-Reads"><span class="nav-number">1.</span> <span class="nav-text">Nonrepeatable Reads</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Consistent-Nonlocking-Reads"><span class="nav-number">1.1.</span> <span class="nav-text">Consistent Nonlocking Reads</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Locking-Reads"><span class="nav-number">1.2.</span> <span class="nav-text">Locking Reads</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pros-and-Cons"><span class="nav-number">1.3.</span> <span class="nav-text">Pros and Cons</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Phantom-Reads"><span class="nav-number">2.</span> <span class="nav-text">Phantom Reads</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Consistent-Nonlocking-Reads-1"><span class="nav-number">2.1.</span> <span class="nav-text">Consistent Nonlocking Reads</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Locking-Reads-1"><span class="nav-number">2.2.</span> <span class="nav-text">Locking Reads</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Other-Confusing-Anomalies"><span class="nav-number">3.</span> <span class="nav-text">Other Confusing Anomalies</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Example"><span class="nav-number">3.1.</span> <span class="nav-text">Example</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Explanation"><span class="nav-number">3.2.</span> <span class="nav-text">Explanation</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Useful-SQLs"><span class="nav-number">4.</span> <span class="nav-text">Useful SQLs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">5.</span> <span class="nav-text">References</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Tan Shun</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/30/A-Simple-Summary-REPEATED-READ-Isolation-In-MySQL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Tan Shun">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="[MySQL] A Simple Summary: REPEATED READ Isolation In MySQL | Tan Shun's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [MySQL] A Simple Summary: REPEATED READ Isolation In MySQL
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-03-30 22:16:06" itemprop="dateCreated datePublished" datetime="2025-03-30T22:16:06+08:00">2025-03-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-03-31 01:31:03" itemprop="dateModified" datetime="2025-03-31T01:31:03+08:00">2025-03-31</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><strong>TL; DR</strong></p>
+<p>REPEATED READ is the default isolation level in MySQL. It solves the following:</p>
+<ul>
+<li><strong>Dirty reads</strong>: reads uncommitted data (<strong>READ COMMITTED has solved this</strong>)</li>
+<li><strong>Nonrepeatable reads</strong>: reads different data in the same transaction for the same row even UPDATEs are not executed</li>
+<li><strong>Phantom reads</strong>: reads additional rows or missing rows in the same transaction, even INSERTs or DELETEs are not executed</li>
+</ul>
+<p>This blog post mainly focuses on how nonrepeatable reads and phantom reads are solved by REPEATED READ isolation level and the unsolvable anomalies in REPEATED READ.</p>
+<span id="more"></span>
+
+<h2 id="Nonrepeatable-Reads"><a href="#Nonrepeatable-Reads" class="headerlink" title="Nonrepeatable Reads"></a>Nonrepeatable Reads</h2><p>Consistent nonlocking reads and locking reads are two types of reads in the REPEATED READ isolation level, and both solve nonrepeatable reads. </p>
+<h3 id="Consistent-Nonlocking-Reads"><a href="#Consistent-Nonlocking-Reads" class="headerlink" title="Consistent Nonlocking Reads"></a>Consistent Nonlocking Reads</h3><ul>
+<li><code>SELECT</code></li>
+</ul>
+<p>It creates a consistent snapshot provided by the MVCC mechanism to read data. When a transaction begins and starts to read some rows, it will have an unchangeable version, which can be used to check if the rows are visible to the transaction. The details are as follows(It may not be accurate):</p>
+<ul>
+<li>When a transaction starts, it will have a transaction ID.</li>
+<li>When a transaction plans to read, it will keep all active transaction IDs.</li>
+<li>When a transaction reads a row, it will check if the row’s transaction ID is less than or equal to this transaction’s and does not exist in the active transaction IDs. If it is, the row is visible to the transaction. Otherwise, the row is invisible to the transaction.</li>
+</ul>
+<h3 id="Locking-Reads"><a href="#Locking-Reads" class="headerlink" title="Locking Reads"></a>Locking Reads</h3><ul>
+<li><code>SELECT ... LOCK IN SHARE MODE</code></li>
+</ul>
+<p>It sets a shared mode lock on <strong>any rows that are read,</strong> even if some rows cannot meet the WHERE condition. Other sessions can read the rows, but cannot modify them until your transaction commits. If any of these rows were changed by another transaction that has not yet committed, your query waits until that transaction ends and then uses the latest values[1].</p>
+<ul>
+<li><code>SELECT ... FOR UPDATE</code></li>
+</ul>
+<p>For index records the search encounters, locks the rows and any associated index entries, the same as if you issued an UPDATE statement for those rows. Other transactions are blocked from updating those rows, from doing SELECT … FOR SHARE, or from reading the data in certain transaction isolation levels. <strong>Consistent reads ignore any locks set on the records that exist in the read view. (Old versions of a record cannot be locked; they are reconstructed by applying undo logs on an in-memory copy of the record.)</strong>[1]</p>
+<h3 id="Pros-and-Cons"><a href="#Pros-and-Cons" class="headerlink" title="Pros and Cons"></a>Pros and Cons</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Consistent Nonlocking Reads</td>
+<td>Never blocks any transaction</td>
+<td>Lost Update(Use read data to update)</td>
+</tr>
+<tr>
+<td>Locking Reads</td>
+<td>Deadlock</td>
+<td>No Lost</td>
+</tr>
+</tbody></table>
+<h2 id="Phantom-Reads"><a href="#Phantom-Reads" class="headerlink" title="Phantom Reads"></a>Phantom Reads</h2><p>Consistent nonlocking reads and locking reads also solve phantom reads.</p>
+<h3 id="Consistent-Nonlocking-Reads-1"><a href="#Consistent-Nonlocking-Reads-1" class="headerlink" title="Consistent Nonlocking Reads"></a>Consistent Nonlocking Reads</h3><ul>
+<li><code>SELECT</code></li>
+</ul>
+<p>It uses the same mechanism as nonrepeatable reads to solve phantom reads.</p>
+<h3 id="Locking-Reads-1"><a href="#Locking-Reads-1" class="headerlink" title="Locking Reads"></a>Locking Reads</h3><ul>
+<li><code>SELECT ... LOCK IN SHARE MODE</code> and <code>SELECT ... FOR UPDATE</code></li>
+</ul>
+<p>It uses the <strong>GAP LOCK</strong> to solve phantom reads. When a transaction reads a range of rows, it locks the gap between the rows. If another transaction inserts a row in the gap, it will be blocked until the first transaction commits or rolls back.</p>
+<h2 id="Other-Confusing-Anomalies"><a href="#Other-Confusing-Anomalies" class="headerlink" title="Other Confusing Anomalies"></a>Other Confusing Anomalies</h2><p>Even though the REPEATED READ isolation level solves nonrepeatable reads and phantom reads, it still has some confusing anomalies:</p>
+<h3 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h3><ul>
+<li>Create a table:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> t1 (id <span class="type">INT</span> <span class="keyword">PRIMARY</span> KEY, c <span class="type">INT</span>) ENGINE <span class="operator">=</span> InnoDB;</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> t1 <span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="number">10</span>), (<span class="number">2</span>, <span class="number">20</span>), (<span class="number">3</span>, <span class="number">30</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Transaction 1:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t1;</span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br><span class="line"><span class="operator">|</span> id <span class="operator">|</span> c    <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">1</span> <span class="operator">|</span>   <span class="number">10</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">2</span> <span class="operator">|</span>   <span class="number">20</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">3</span> <span class="operator">|</span>   <span class="number">30</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Transaction 2:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"><span class="keyword">UPDATE</span> t1 <span class="keyword">SET</span> c <span class="operator">=</span> c <span class="operator">+</span> <span class="number">1</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Transaction 1:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t1;</span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br><span class="line"><span class="operator">|</span> id <span class="operator">|</span> c    <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">1</span> <span class="operator">|</span>   <span class="number">10</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">2</span> <span class="operator">|</span>   <span class="number">20</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">3</span> <span class="operator">|</span>   <span class="number">30</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Transaction 2:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Transaction 1:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> t1 <span class="keyword">SET</span> c <span class="operator">=</span> c <span class="operator">+</span> <span class="number">1</span> <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">2</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t1;</span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br><span class="line"><span class="operator">|</span> id <span class="operator">|</span> c    <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">1</span> <span class="operator">|</span>   <span class="number">10</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">2</span> <span class="operator">|</span>   <span class="number">22</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">3</span> <span class="operator">|</span>   <span class="number">30</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+------+</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>The anomaly is the c value of id 2 is 22, not 21, in Transaction 1.</strong></p>
+<h3 id="Explanation"><a href="#Explanation" class="headerlink" title="Explanation"></a>Explanation</h3><p>The root cause is the mixing of consistent nonlocking reads and locking reads. <code>SELECT * FROM t1;</code> is a consistent nonlocking read, and <code>UPDATE t1 SET c = c + 1 WHERE id = 2;</code> is a locking read. <strong>The locking read updates the row via the committed version(21), not the uncommitted version(20). So the c value of id 2 is 22, not 21.</strong></p>
+<p>Therefore, mixing consistent nonlocking and locking reads may cause some confusing anomalies. Users should be as consistent as possible in the same transaction.</p>
+<h2 id="Useful-SQLs"><a href="#Useful-SQLs" class="headerlink" title="Useful SQLs"></a>Useful SQLs</h2><ul>
+<li>Check the locks:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> performance_schema.data_locks;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li>[1]: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html">17.7.2.4 Locking Reads</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/09/Summary-Sequencer/" rel="prev" title="[SD] Summary: Sequencer">
+                  <i class="fa fa-chevron-left"></i> [SD] Summary: Sequencer
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tan Shun</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
